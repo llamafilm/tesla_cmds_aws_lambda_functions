@@ -16,10 +16,13 @@ def lambda_handler(event, context):
   TOPIC_ARN = os.environ.get('SNS_TOPIC_ARN')
 
   # If X-Forwarded-For exists then set CLIENT_IP_ADDRESS accordingly
-  if "X-Forwarded-For" in EVENT_HEADERS:
-    CLIENT_IP_ADDRESS = EVENT_HEADERS["X-Forwarded-For"]
+  if "x-forwarded-for" in EVENT_HEADERS:
+    CLIENT_IP_ADDRESS = EVENT_HEADERS["x-forwarded-for"]
   else:
     CLIENT_IP_ADDRESS = "127.0.0.1"
+
+  if "user-agent" in EVENT_HEADERS:
+    CLIENT_IP_ADDRESS += f" ({EVENT_HEADERS['user-agent']})"
   ##################################################################################################################
   
   # Function that retrieves the vehicle's status and returns it 
@@ -85,7 +88,12 @@ def lambda_handler(event, context):
       "INITIAL_VEHICLE_STATE": INITIAL_VEHICLE_STATE
     }
 
-    RETURN_DATA_STR = json.dumps(RETURN_DATA)
+    return {
+      'statusCode': 200,
+      'headers': {'Content-Type': 'application/json'},
+      'body': json.dumps(RETURN_DATA)
+    }
+    
   else:
     print("ERROR: Exiting as communication with Tesla's APIs failed for vehicle ID #" + VEHICLE_ID + " on behalf of " + CLIENT_IP_ADDRESS)
     RETURN_DATA = {
@@ -98,9 +106,8 @@ def lambda_handler(event, context):
       "INITIAL_VEHICLE_STATE": INITIAL_VEHICLE_STATE
     }
 
-    RETURN_DATA_STR = json.dumps(RETURN_DATA)
-
-  return {
+    return {
+      'statusCode': 400,
       'headers': {'Content-Type': 'application/json'},
-      'body': RETURN_DATA_STR
-  }
+      'body': json.dumps(RETURN_DATA)
+    }
