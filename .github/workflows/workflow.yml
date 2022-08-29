@@ -69,6 +69,8 @@ jobs:
         run: aws lambda update-function-code --function-name tesla-shortcuts-frontend-prod --zip-file fileb://frontend.zip
       - name: Deploy backend function to Prod environment
         run: aws lambda update-function-code --function-name tesla-shortcuts-backend-prod --zip-file fileb://backend.zip
+      - name: Copy CloudFormation template to S3
+        run: aws s3 cp tesla-shortcuts-cloud-formation.yaml s3://llamafilm.com/github/tesla-shortcuts-cloud-formation.yaml
       - name: Pause 10 seconds for functions to become available
         run: sleep 10
       - name: Make test script executable
